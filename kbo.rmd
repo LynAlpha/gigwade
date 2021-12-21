@@ -1,0 +1,78 @@
+csv 불러오기
+
+```{r}
+batter<-read.csv("2020타자.csv")
+batter.weekday<-read.csv("2020타자평일.csv")
+batter.weekend<-read.csv("2020타자주말.csv")
+batter.home<-read.csv("2020타자홈.csv")
+batter.away<-read.csv("2020타자원정.csv")
+head(batter.weekday)
+```
+가설 1. 타자들의 평일과 주말 타율은 유의미한 차이를 보일 것이다.
+```{r}
+hit.week<-c(sum(batter.weekday$안타), sum(batter.weekend$안타))
+at.bat.week<-c(sum(batter.weekday$타수), sum(batter.weekend$타수))
+prop.test(hit.week, at.bat.week)
+prop.test(hit.week, at.bat.week, correct=FALSE)
+```
+p-value로부터 귀무가설을 기각할 수 없으므로 평일과 주말의 타자의 평균적인 타격능력은 유의미한 차이를 보인다고 할 수 없다.
+
+가설 2. 허경민의 타율은 주말과 평일에따라 유의미한 차이를 보일 것이다.
+```{r}
+heo.weekday<-batter.weekday[which(batter.weekday$이름=="허경민"),]
+heo.weekend<-batter.weekend[which(batter.weekend$이름=="허경민"),]
+heo.hit<-c(heo.weekday$안타 , heo.weekend$안타)
+heo.at.bat<-c(heo.weekday$타수 , heo.weekend$타수)
+prop.test(heo.hit, heo.at.bat)
+prop.test(heo.hit, heo.at.bat, correct=FALSE)
+```
+p-value로부터 귀무가설을 기각할 수 있고, 따라서 허경민의 타율은 평일과 주말의 유의미한 차이가 존재함을 알 수 있다.
+
+가설 3. 타자들의 홈과 원정 타율은 유의미한 차이를 보일 것이다.
+```{r}
+hit.ha<-c(sum(batter.home$안타), sum(batter.away$안타))
+at.bat.ha<-c(sum(batter.home$타수), sum(batter.away$타수))
+prop.test(hit.ha, at.bat.ha)
+prop.test(hit.ha, at.bat.ha, correct=FALSE)
+```
+p-value로부터, 귀무가설을 기각할 수 있다. 따라서 타자들의 타율은 홈인지 원정인지에 따라 유의미한 차이가 있음을 알 수 있다.
+
+가설 4. 오재일의 타율은 홈과 원정에따라 유의미한 차이를 보일 것이다.
+```{r}
+oh.home<-batter.home[which(batter.home$이름=="오재일"),]
+oh.away<-batter.away[which(batter.away$이름=="오재일"),]
+oh.hit<-c(oh.home$안타 , oh.away$안타)
+oh.at.bat<-c(oh.home$타수 , oh.away$타수)
+prop.test(oh.hit, oh.at.bat)
+prop.test(oh.hit, oh.at.bat, correct=FALSE)
+```
+p-value로부터 귀무가설을 기각할 수 있고, 대립가설에 의해 오재일의 타율은 홈과 원정에 따라 유의미한 차이를 보임을 알 수 있다.
+
+모델 1. wRC+을 계산해보자.
+```{r}
+head(batter$"X2타")
+```
+
+```{r}
+model1<-lm(batter$wRC.~batter$안타+batter$X2타+batter$X3타+batter$홈런+batter$타점+batter$볼넷)
+summary(model1)
+```
+```{r}
+drop1(model1, test="F")
+```
+```{r}
+model2<-lm(batter$wRC.~batter$안타+batter$X2타+batter$홈런+batter$타점+batter$볼넷)
+drop1(model2, test="F")
+```
+```{r}
+model3<-lm(batter$wRC.~batter$안타+batter$X2타+batter$홈런+batter$타점)
+drop1(model3, test="F")
+```
+```{r}
+model4<-lm(batter$wRC.~batter$안타+batter$X2타+batter$홈런)
+drop1(model4, test="F")
+```
+```{r}
+model5<-lm(batter$wRC.~batter$안타+batter$홈런)
+drop1(model5, test="F")
+```
